@@ -31,8 +31,13 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  const shortURLString = generateRandomString();
+  if (req.body.longURL) {
+    urlDatabase[shortURLString] = req.body.longURL;
+  }
+  console.log(req.body); // Log the POST request body to the console
+  //res.send("Ok");  // <--- Respond with 'Ok' (we will replace this)
+  res.redirect(`urls/${shortURLString}`); // redirects to :shortURL page
 });
 
 app.get("/urls/new", (req, res) => {
@@ -48,11 +53,21 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-function generateRandomString(length) {
+app.get("/u/:shortURL", (req, res) => {
+  // const longURL = ...
+
+  const longURL = urlDatabase[req.params.shortURL];
+  // console.log(req.params.shortURL);
+  // console.log(urlDatabase);
+  // console.log(longURL);
+  res.redirect(longURL);
+});
+
+const generateRandomString = () => {
   let randomString = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < length; i++) {
-    randomString = characters.charAt(Math.floor(Math.random() * characters.length));
+  for (let i = 0; i <= 6; i++) {
+    randomString += characters.charAt(Math.floor(Math.random() * characters.length));
   }
   return randomString;
 };
