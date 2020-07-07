@@ -40,6 +40,11 @@ app.post("/urls", (req, res) => {
   res.redirect(`urls/${shortURLString}`); // redirects to :shortURL page
 });
 
+app.post('/urls/:shortURL/delete', (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls");
+});
+
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
