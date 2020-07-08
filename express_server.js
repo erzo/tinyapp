@@ -29,14 +29,14 @@ const users = {
   }
 }
 
-// const findUser = (email) => {
-//   for (const user of users) {
-//   console.log(users[user]);
-//     if (users[user].email === email) {
-//       return user;
-//     }
-//   }
-// };
+const findUser = (email) => {
+  for (const user in users) {
+  console.log(users[user]);
+    if (users[user].email === email) {
+      return user;
+    }
+  }
+};
 
 app.get("/register", (req, res) => {
   let templateVars = {
