@@ -33,6 +33,7 @@ const findUser = (email) => {
   for (const user in users) {
   console.log(users[user]);
     if (users[user].email === email) {
+      console.log(user);
       return user;
     }
   }
