@@ -102,22 +102,34 @@ app.get("/login", (req, res) => {
   res.render("login", templateVars);
 });
 
-app.post("/login", (req, res) => {
-  if (!req.cookies["user_id"]) {
+// app.post("/login", (req, res) => {
+//   if (!req.cookies["user_id"]) {
+//     const email = req.body.email;
+//     const pass = req.body.password;
+//     let userID = "";
+//   for (const user in users) {
+//     if (users[user].email === email) {
+//       userID = users[user].id;
+//     }
+//   }
+//   res.cookie("user_id", userID);
+//   res.redirect('/urls');
+//   } else {
+//     res.redirect("/urls");
+//   }
+// });
 
-  const email = req.body.email;
-  const pass = req.body.password;
-  let userID = "";
+app.post("/login", (req, res) => {
   for (const user in users) {
-    if (users[user].email === email) {
-      userID = users[user].id;
+    if (req.body.email === users[user].email) {
+      if (req.body.password === users[user].password) {
+        res.cookie("user_id", user);
+        res.redirect("/urls");
+        return;
+      }
     }
   }
-  res.cookie("user_id", userID);
-  res.redirect('/urls');
-  } else {
-    res.redirect("/urls");
-  }
+  res.send(403);
 });
 
 // middleware 
