@@ -10,12 +10,10 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
-// Global Objects
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
 
+
+
+// Global Objects
 const users = { 
   "userRandomID": {
     id: "userRandomID", 
@@ -29,28 +27,20 @@ const users = {
   }
 }
 
-const findUser = (email) => {
-  for (let user in users) {
-  console.log(users[user]);
-    if (users[user].email === email) {
-      console.log(user);
-      return user;
-    }
-  }
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca", 
+//   "9sm5xK": "http://www.google.com"
+// };
+
+const urlDatabase = {
+  "b6UTxQ": { longURL: "https://www.tsn.ca", userID: "user_id" },
+  "i3BoGr": { longURL: "https://www.google.ca", userID: "user_id" },
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "user_id" }
 };
 
-// // middleware 
-// app.use((req, res, next) => {
-//   if (req.cookies["user_id"] && 
-//     users[req.cookies["user_id"]] && 
-//     users[req.cookies["user_id"]].email) {
-//       // makes email into a value that can be access by any page
-//       res.locals.email = users[req.cookies["user_id"]].email;
-//       next();
-//   } else {
-//     return res.redirect("/login");
-//   }
-// });
+
+
+
 
 // server read and create methods
 app.get("/", (req, res) => {
@@ -65,6 +55,10 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+
+
+
+// REGISTER PAGE
 app.get("/register", (req, res) => {
   if (users[req.cookies["user_id"]] && users[req.cookies["user_id"]].email) {
     return res.redirect("/urls");
@@ -72,7 +66,7 @@ app.get("/register", (req, res) => {
   let templateVars = {
     email: ""
   };
-  console.log('email = ' + req.cookies["user_id"]);
+  //console.log('email = ' + req.cookies["user_id"]);
   res.render("register", templateVars);
 });
 
@@ -92,6 +86,10 @@ app.post("/register", (req, res) => {
   }
 });
 
+
+
+
+// LOGIN PAGE
 app.get("/login", (req, res) => {
   if (users[req.cookies["user_id"]] && users[req.cookies["user_id"]].email) {
     return res.redirect("/urls");
@@ -100,6 +98,19 @@ app.get("/login", (req, res) => {
     email: ""
   };
   res.render("login", templateVars);
+});
+
+app.post("/login", (req, res) => {
+  for (const user in users) {
+    if (req.body.email === users[user].email) {
+      if (req.body.password === users[user].password) {
+        res.cookie("user_id", user);
+        res.redirect("/urls");
+        return;
+      }
+    }
+  }
+  res.send(403);
 });
 
 // app.post("/login", (req, res) => {
@@ -119,54 +130,61 @@ app.get("/login", (req, res) => {
 //   }
 // });
 
-app.post("/login", (req, res) => {
-  for (const user in users) {
-    if (req.body.email === users[user].email) {
-      if (req.body.password === users[user].password) {
-        res.cookie("user_id", user);
-        res.redirect("/urls");
-        return;
-      }
-    }
-  }
-  res.send(403);
-});
 
-// middleware 
-app.use((req, res, next) => {
-  if (req.cookies["user_id"] && 
-    users[req.cookies["user_id"]] && 
-    users[req.cookies["user_id"]].email) {
-      // makes email into a value that can be access by any page
-      res.locals.email = users[req.cookies["user_id"]].email;
-      next();
-  } else {
-    return res.redirect("/login");
-  }
-});
+// // middleware location
 
+
+
+// LOGOUT REQUEST
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
+
+
+
+//MAIN URL PAGE
 app.get("/urls", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    email: users[req.cookies["user_id"]].email
-  };
-  res.render("urls_index", templateVars);
+  if (users[req.cookies["user_id"]] && users[req.cookies["user_id"]].email) {
+    const templateVars = {
+      urls: urlDatabase,
+      email: users[req.cookies["user_id"]].email
+    };
+    res.render("urls_index", templateVars);
+  } else {
+    const templateVars = {
+      urls: urlDatabase,
+      email: users[req.cookies["user_id"]]
+    };
+    res.render("urls_index", templateVars);
+  }
 });
 
+// app.post("/urls", (req, res) => {
+//     const shortURLString = generateRandomString();
+//     if (req.body.longURL) {
+//       urlDatabase[shortURLString] = req.body.longURL;
+//     }
+//     console.log(req.body); // Log the POST request body to the console
+//     res.redirect(`urls/${shortURLString}`);
+// });
+
+
+//TESTING URLDATABASE UPDATE
 app.post("/urls", (req, res) => {
   const shortURLString = generateRandomString();
   if (req.body.longURL) {
-    urlDatabase[shortURLString] = req.body.longURL;
+    urlDatabase[shortURLString] = {longURL: req.body.longURL, userID: req.cookies["user_id"]};
   }
-  console.log(req.body); // Log the POST request body to the console
+  console.log(urlDatabase); // Log the POST request body to the console
   res.redirect(`urls/${shortURLString}`);
 });
 
+
+
+
+//URL PAGE EDIT AND DETELE BUTTONS
 app.post('/urls/:shortURL/delete', (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
@@ -177,6 +195,28 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
+
+
+
+//CREATE NEW URL PAGE
+app.get("/urls/new", (req, res) => {
+  if (users[req.cookies["user_id"]]) {
+
+    let templateVars = { user: users[req.cookies["user_id"]], 
+    email: users[req.cookies["user_id"]].email 
+  };
+    res.render("urls_new", templateVars);
+    return;
+
+  } else {
+    res.redirect("/login");
+  }
+});
+
+
+
+
+//URL SHORTURL PAGE
 app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   urlDatabase[req.params.shortURL] = req.body.longURL;
@@ -184,35 +224,32 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect("/urls");
 });
 
-app.get("/urls/new", (req, res) => {
-  let templateVars = {
-    email: users[req.cookies["user_id"]].email
-  };
-  res.render("urls_new", templateVars);
-});
-
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL], 
-    email: users[req.cookies["user_id"]].email };
+    longURL: urlDatabase[req.params.shortURL].longURL, //changed to look for L-URL
+    email: users[req.cookies["user_id"]].email 
+  };
   res.render("urls_show", templateVars);
 });
 
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+  console.log(longURL);
+  res.redirect(longURL);
+});
+
+
+
+
+//LISTEN TO PORT
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-app.get("/u/:shortURL", (req, res) => {
-  // const longURL = ...
 
-  const longURL = urlDatabase[req.params.shortURL];
-  // console.log(req.params.shortURL);
-  // console.log(urlDatabase);
-  // console.log(longURL);
-  res.redirect(longURL);
-});
 
+//FUNCTIONS
 const generateRandomString = () => {
   let randomString = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -221,3 +258,31 @@ const generateRandomString = () => {
   }
   return randomString;
 };
+
+const findUser = (email) => {
+  for (let user in users) {
+  console.log(users[user]);
+    if (users[user].email === email) {
+      console.log(user);
+      return user;
+    }
+  }
+};
+
+
+
+
+
+
+// // middleware 
+// app.use((req, res, next) => {
+//   if (req.cookies["user_id"] && 
+//     users[req.cookies["user_id"]] && 
+//     users[req.cookies["user_id"]].email) {
+//       // makes email into a value that can be access by any page
+//       res.locals.email = users[req.cookies["user_id"]].email;
+//       next();
+//   } else {
+//     return res.redirect("/login");
+//   }
+// });
