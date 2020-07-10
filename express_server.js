@@ -27,18 +27,11 @@ const users = {
   }
 }
 
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca", 
-//   "9sm5xK": "http://www.google.com"
-// };
-
 const urlDatabase = {
   "b6UTxQ": { longURL: "https://www.tsn.ca", userID: "user_id" },
   "i3BoGr": { longURL: "https://www.google.ca", userID: "user_id" },
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "user_id" }
 };
-
-
 
 
 
@@ -80,8 +73,8 @@ app.post("/register", (req, res) => {
   users[randomUserID].email = req.body["email"];
   users[randomUserID].password = req.body["password"];
   res.cookie("user_id", randomUserID);
-  console.log("user_id");
-  console.log(users)
+  // console.log("user_id");
+  // console.log(users)
   res.redirect("/urls");
   }
 });
@@ -114,7 +107,7 @@ app.post("/login", (req, res) => {
 });
 
 // app.post("/login", (req, res) => {
-//   if (!req.cookies["user_id"]) {
+//   if (!req.cookies["user_id"]) { //if you are not logged in
 //     const email = req.body.email;
 //     const pass = req.body.password;
 //     let userID = "";
@@ -146,15 +139,20 @@ app.post("/logout", (req, res) => {
 
 //MAIN URL PAGE
 app.get("/urls", (req, res) => {
+  const access = userAccess(req.cookies["user_id"]);
+  console.log("informative_text", access);
+  
   if (users[req.cookies["user_id"]] && users[req.cookies["user_id"]].email) {
+    
     const templateVars = {
-      urls: urlDatabase,
+      urls: access,
       email: users[req.cookies["user_id"]].email
     };
+
     res.render("urls_index", templateVars);
   } else {
     const templateVars = {
-      urls: urlDatabase,
+      urls: access,
       email: users[req.cookies["user_id"]]
     };
     res.render("urls_index", templateVars);
@@ -186,13 +184,23 @@ app.post("/urls", (req, res) => {
 
 //URL PAGE EDIT AND DETELE BUTTONS
 app.post('/urls/:shortURL/delete', (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
+  let shortURL = req.params.shortURL;
+  const userid = urlDatabase[shortURL].userID;
+  if (req.cookies["user_id"] === userid) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect("/urls");
+  }
+  res.redirect("/login");
 });
 
 app.post("/urls/:shortURL/edit", (req, res) => {
-  const shortURL = req.params.shortURL;
-  res.redirect(`/urls/${shortURL}`);
+  let shortURL = req.params.shortURL;
+  const userid = urlDatabase[shortURL].userID;
+  if (req.cookies["user_id"] === userid) {
+    const shortURL = req.params.shortURL;
+    res.redirect(`/urls/${shortURL}`);
+  }
+  res.redirect("/login");
 });
 
 
@@ -225,12 +233,18 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = {
-    shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL].longURL, //changed to look for L-URL
-    email: users[req.cookies["user_id"]].email 
-  };
-  res.render("urls_show", templateVars);
+  let shortURL = req.params.shortURL;
+  const userid = urlDatabase[shortURL].userID;
+  if (req.cookies["user_id"] === userid) {
+    const access = userAccess(req.cookies["user_id"]);
+    let templateVars = {
+      shortURL: req.params.shortURL, 
+      longURL: urlDatabase[req.params.shortURL].longURL, //changed to look for L-URL
+      email: users[req.cookies["user_id"]].email
+    };
+    res.render("urls_show", templateVars);
+  }
+  res.redirect("/login");
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -261,15 +275,25 @@ const generateRandomString = () => {
 
 const findUser = (email) => {
   for (let user in users) {
-  console.log(users[user]);
+  // console.log(users[user]);
     if (users[user].email === email) {
-      console.log(user);
+      // console.log(user);
       return user;
     }
   }
 };
 
-
+const userAccess = (user) => {
+  const urlArray = [];
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID ===  user) {
+      let urlData = {};
+      urlData = { shortURL: url, longURL: urlDatabase[url].longURL }
+      urlArray.push(urlData);
+    }
+  }
+  return urlArray;
+};
 
 
 
