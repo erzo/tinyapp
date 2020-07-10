@@ -1,6 +1,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const bcrypt = require('bcrypt');
+
 
 
 const app = express();
@@ -63,15 +65,35 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
+// app.post("/register", (req, res) => {
+//   if (req.body["email"] === "" || req.body["password"] === "" || findUser(req.body["email"]) ) {
+//     res.send(400);
+//   } else {
+//   const password = "purple-monkey-dinosaur"; // found in the req.params object
+//   const hashedPassword = bcrypt.hashSync(password, 10);
+//   const randomUserID = generateRandomString();
+//   users[randomUserID] = {};
+//   users[randomUserID].id = randomUserID;
+//   users[randomUserID].email = req.body["email"];
+//   users[randomUserID].password = req.body["password"];
+//   res.cookie("user_id", randomUserID);
+//   // console.log("user_id");
+//   // console.log(users)
+//   res.redirect("/urls");
+//   }
+// });
+
 app.post("/register", (req, res) => {
   if (req.body["email"] === "" || req.body["password"] === "" || findUser(req.body["email"]) ) {
     res.send(400);
   } else {
+  const password = req.body["password"]; // found in the req.params object
+  const hashedPassword = bcrypt.hashSync(password, 10);
   const randomUserID = generateRandomString();
   users[randomUserID] = {};
   users[randomUserID].id = randomUserID;
   users[randomUserID].email = req.body["email"];
-  users[randomUserID].password = req.body["password"];
+  users[randomUserID].password = hashedPassword;
   res.cookie("user_id", randomUserID);
   // console.log("user_id");
   // console.log(users)
@@ -96,7 +118,9 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   for (const user in users) {
     if (req.body.email === users[user].email) {
-      if (req.body.password === users[user].password) {
+      const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+      if (bcrypt.compareSync(req.body.password, hashedPassword)) {
+        console.log(users);
         res.cookie("user_id", user);
         res.redirect("/urls");
         return;
