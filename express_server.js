@@ -16,7 +16,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
   name: 'session',
   keys: ["tinyappforthewin"]
-}))
+}));
 
 
 // Global Objects
@@ -89,7 +89,7 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   if (req.body["email"] === "" || req.body["password"] === "" || findUser(req.body["email"], users)) {
-    res.send(400);
+    res.redirect("error");
   } else {
   const password = req.body["password"]; // found in the req.params object
   const hashedPassword = bcrypt.hashSync(password, 10);
@@ -105,6 +105,18 @@ app.post("/register", (req, res) => {
   }
 });
 
+
+
+//ERROR PAGE
+app.get("/error", (req, res) => {
+  const access = userAccess(req.session.user_id);
+  const templateVars = {
+    urls: access,
+    // email: users[req.cookies["user_id"]]
+    email: users[req.session.user_id].email
+  };
+  res.render("error", templateVars);
+});
 
 
 
@@ -134,9 +146,10 @@ app.post("/login", (req, res) => {
       }
     }
   }
-  res.send(403);
+  res.redirect("register");
 });
 
+/*
 // app.post("/login", (req, res) => {
 //   if (!req.cookies["user_id"]) { //if you are not logged in
 //     const email = req.body.email;
@@ -153,6 +166,7 @@ app.post("/login", (req, res) => {
 //     res.redirect("/urls");
 //   }
 // });
+*/
 
 
 // // middleware location
@@ -183,15 +197,15 @@ app.get("/urls", (req, res) => {
       // email: users[req.cookies["user_id"]].email
       email: users[req.session.user_id].email
     };
-
     res.render("urls_index", templateVars);
+
   } else {
     const templateVars = {
       urls: access,
       // email: users[req.cookies["user_id"]]
       email: users[req.session.user_id]
     };
-    res.render("urls_index", templateVars);
+    res.render("error", templateVars);
   }
 });
 
@@ -288,7 +302,7 @@ app.get("/urls/:shortURL", (req, res) => {
     };
     res.render("urls_show", templateVars);
   }
-  res.redirect("/login");
+  res.redirect("/error"); //was login
 });
 
 app.get("/u/:shortURL", (req, res) => {
