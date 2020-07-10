@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 // const cookieParser = require("cookie-parser");
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
+const { findUser } = require("./helpers");
 
 
 const app = express();
@@ -87,7 +88,7 @@ app.get("/register", (req, res) => {
 // });
 
 app.post("/register", (req, res) => {
-  if (req.body["email"] === "" || req.body["password"] === "" || findUser(req.body["email"]) ) {
+  if (req.body["email"] === "" || req.body["password"] === "" || findUser(req.body["email"], users)) {
     res.send(400);
   } else {
   const password = req.body["password"]; // found in the req.params object
@@ -316,16 +317,6 @@ const generateRandomString = () => {
   return randomString;
 };
 
-const findUser = (email) => {
-  for (let user in users) {
-  // console.log(users[user]);
-    if (users[user].email === email) {
-      // console.log(user);
-      return user;
-    }
-  }
-};
-
 const userAccess = (user) => {
   const urlArray = [];
   for (const url in urlDatabase) {
@@ -337,6 +328,15 @@ const userAccess = (user) => {
   }
   return urlArray;
 };
+
+// const findUser = (email, database) => {
+//   for (let user in database) {
+//     if (database[user].email === email) {
+//       // console.log(user);
+//       return user;
+//     }
+//   }
+// };
 
 
 
