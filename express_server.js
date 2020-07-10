@@ -87,8 +87,26 @@ app.get("/register", (req, res) => {
 //   }
 // });
 
+// app.post("/register", (req, res) => {
+//   if (req.body["email"] === "" || req.body["password"] === "" || findUser(req.body["email"], users)) {
+//     res.redirect("error");
+//   } else {
+//   const password = req.body["password"]; // found in the req.params object
+//   const hashedPassword = bcrypt.hashSync(password, 10);
+//   const randomUserID = generateRandomString();
+//   users[randomUserID] = {};
+//   users[randomUserID].id = randomUserID;
+//   users[randomUserID].email = req.body["email"];
+//   users[randomUserID].password = hashedPassword;
+//   req.session.user_id = randomUserID;
+//   // console.log("user_id");
+//   // console.log(users)
+//   res.redirect("/urls");
+//   }
+// });
+
 app.post("/register", (req, res) => {
-  if (req.body["email"] === "" || req.body["password"] === "" || findUser(req.body["email"], users)) {
+  if (req.body["email"] === "" || req.body["password"] === "" || findUser(req.body["email"]) || findUser(req.body["password"], users)) {
     res.redirect("error");
   } else {
   const password = req.body["password"]; // found in the req.params object
@@ -250,12 +268,14 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   // if (req.cookies["user_id"] === userid) {
   if (req.session.user_id === userid) {
     const shortURL = req.params.shortURL;
+    urlDatabase[shortURL].longURL = req.body.longURL;
     res.redirect(`/urls/${shortURL}`);
-  }
+  } else {
   res.redirect("/login");
+  }
 });
 
-
+// "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "user_id"
 
 
 //CREATE NEW URL PAGE
@@ -280,12 +300,12 @@ app.get("/urls/new", (req, res) => {
 
 
 //URL SHORTURL PAGE
-app.post("/urls/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
-  urlDatabase[req.params.shortURL] = req.body.longURL;
-//  res.redirect(`/urls/${shortURL}`);
-  res.redirect("/urls");
-});
+// app.post("/urls/:shortURL", (req, res) => {
+//   const shortURL = req.params.shortURL;
+//   urlDatabase[req.params.shortURL] = req.body.longURL;
+// //  res.redirect(`/urls/${shortURL}`);
+//   res.redirect("/urls");
+// });
 
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
