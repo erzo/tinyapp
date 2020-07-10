@@ -3,7 +3,7 @@ const findUser = (email, database) => {
     if (database[user].email === email) {
       return user;
     }
-    console.log(user);
+    //console.log(user);
   }
   return undefined;
 };
